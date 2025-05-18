@@ -1,5 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import pandas as pd
+import joblib
+
+model = joblib.load('random_forest_model.pkl')
+scaler = joblib.load('scaler.pkl')
+columns = joblib.load('columns.pkl')
 
 app = Flask(__name__)
 CORS(app)
@@ -11,18 +17,27 @@ def hello_world():
     }
     return jsonify(result)
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
+@app.route('/predict', methods=["POST"])
+def predict():
+    try:
+        data = request.get_json()
+        new_data = pd.DataFrame([data])
 
-    username = data.get('username')
-    password = data.get('password')
+        new_data_encoded = pd.get_dummies(new_data)
+        new_data_encoded = new_data_encoded.reindex(columns=columns, fill_value=0)
 
-    print(username, password)
+        scaled = scaler.transform(new_data_encoded)
 
-    return jsonify({
-        "username" : "hello.py"
-    })
+        # Predict
+        pred = model.predict(scaled)[0]
+        result = "Fraud" if pred == 1 else "Not Fraud"
+
+        return jsonify({"prediction": result})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)})
+    
+
 
 if __name__ == '__main__':
     app.run(debug=True)
