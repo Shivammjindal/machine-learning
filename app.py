@@ -3,9 +3,9 @@ from flask_cors import CORS
 import pandas as pd
 import joblib
 
-model = joblib.load('random_forest_model.pkl')
-scaler = joblib.load('scaler.pkl')
-columns = joblib.load('columns.pkl')
+model = joblib.load('random_forest_model_advanced.pkl')
+scaler = joblib.load('scalers.pkl')
+columns = joblib.load('columnss.pkl')
 
 app = Flask(__name__)
 CORS(app)
@@ -30,14 +30,13 @@ def predict():
 
         # Predict
         pred = model.predict(scaled)[0]
-        result = "Fraud" if pred == 1 else "Not Fraud"
+        result = "Suspecious Need to be Varified by Bank" if pred == 1 else "You Transaction is Fine"
 
         return jsonify({"prediction": result})
     
     except Exception as e:
         return jsonify({"error": str(e)})
     
-
 
 if __name__ == '__main__':
     app.run(debug=True)
